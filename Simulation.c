@@ -16,21 +16,34 @@ typedef struct {
 
 process processes[50];
 CPU cpus[5];
+unsigned long maxBurst;
+
+void setMaxBurst() {
+	unsigned long max = 0;
+	int i;
+	for (i = 0; i < 50; i++) {
+		if (processes[i].burst > max)
+			max = processes[i].burst;
+	}
+
+	maxBurst = max;
+}
 
 void generateProcesses() {
 	int i;
 	for (i = 0; i < 50; i++) {
 		process p;
-		p.memory = (rand() % (8388608 - 250)) + 250; // .25MB - 8GB
-		p.burst = (rand() % (long)((50*pow(10,12)) - (10*pow(10,6)))) + (10*pow(10,6));
+		p.memory = (random() % (8388608 - 250)) + 250; // .25MB - 8GB
+		p.burst = (random() % (long)((50*pow(10,12)) - (10*pow(10,6)))) + (10*pow(10,6));
 		processes[i] = p;
 	}
+	setMaxBurst();
 }
 
 process getNewProcess() {
 	process p;
-	p.memory = (rand() % (8388608 - 250)) + 250; // .25MB - 8GB
-	p.burst = (rand() % (long)((50*pow(10,12)) - (10*pow(10,6)))) + (10*pow(10,6));
+	p.memory = (random() % (8388608 - 250)) + 250; // .25MB - 8GB
+	p.burst = (random() % (long)((50*pow(10,12)) - (10*pow(10,6)))) + (10*pow(10,6));
 	return p;
 }
 
@@ -81,8 +94,8 @@ void reorderQueue(process *queue, int length) {
 	}
 }
 
-unsigned long getTurnaroundTimeProb1() { // Return the CPU with the longest time
-	unsigned long turnaround = 0, sum = 0;
+unsigned long long getTurnaroundTimeProb1() { // Return the CPU with the longest time
+	unsigned long long turnaround = 0, sum = 0;
 	int i, j;
 	for (i = 0; i < 5; i++) {
 		sum = 0;
@@ -96,8 +109,8 @@ unsigned long getTurnaroundTimeProb1() { // Return the CPU with the longest time
 	return turnaround;
 }
 
-unsigned long getTurnaroundTime() {
-	unsigned long turnaround = 0, sum = 0;
+unsigned long long getTurnaroundTime() {
+	unsigned long long turnaround = 0, sum = 0;
 	int i, j;
 	for (i = 0; i < 5; i++) {
 		sum = 0;
@@ -111,6 +124,15 @@ unsigned long getTurnaroundTime() {
 	return turnaround;
 }
 
+unsigned long long turnaroundTimeForCpu(int cpu) {
+	unsigned long long sum = 0;
+	int i;
+	for (i = 0; i < cpus[cpu].procCount; i++) {
+		sum += cpus[cpu].queue[i].burst;
+	}
+
+	return sum;
+}
 
 void prob1() { // All CPU's identical
 	clearCpus();
@@ -137,10 +159,10 @@ void prob1() { // All CPU's identical
 	}
 
 	// Get turnaround time in cycles
-	unsigned long turnaround = getTurnaroundTimeProb1();
+	unsigned long long turnaround = getTurnaroundTimeProb1();
 	printProcs();
-	printf("Turnaround time in cycles: %lu\n", turnaround);
-	printf("Total time for problem 1 = %ds\n", turnaround / cpus[0].speed);
+	printf("Turnaround time in cycles: %llu\n", turnaround);
+	printf("Total time for problem 1 = %llus\n", turnaround / cpus[0].speed);
 
 }
 
@@ -181,34 +203,64 @@ void prob2() {
 		}
 	}
 
-	unsigned long turnaround = getTurnaroundTime();
+	unsigned long long turnaround = getTurnaroundTime();
 
-	printf("Total time for problem 2 = %ds\n", turnaround / cpus[0].speed);
+	printf("Total time for problem 2 = %llus\n", turnaround / cpus[0].speed);
 
 }
 
 void prob3() {
 	clearCpus();
-	cpus[0].speed = 2 * (int)(pow(10,6)); // 2 GHz
+	cpus[0].speed = 2 * (long)(pow(10,6)); // 2 GHz
 	cpus[0].memory = 8388608; // 8GB
 	cpus[0].procCount = 0;
-	cpus[1].speed = 2 * (int)(pow(10,6)); // 2 GHz
+	cpus[1].speed = 2 * (long)(pow(10,6)); // 2 GHz
 	cpus[1].memory = 8388608; // 8GB
 	cpus[1].procCount = 0;
-	cpus[2].speed = 3 * (int)(pow(10,6)); // 3 GHz
+	cpus[2].speed = 3 * (long)(pow(10,6)); // 3 GHz
 	cpus[2].memory = 8388608; // 8GB
 	cpus[2].procCount = 0;
-	cpus[3].speed = 3 * (int)(pow(10,6)); // 3 GHz
+	cpus[3].speed = 3 * (long)(pow(10,6)); // 3 GHz
 	cpus[3].memory = 8388608; // 8GB
 	cpus[3].procCount = 0;
-	cpus[4].speed = 4 * (int)(pow(10,6)); // 4 GHz
+	cpus[4].speed = 4 * (long)(pow(10,6)); // 4 GHz
 	cpus[4].memory = 8388608; // 8GB
 	cpus[4].procCount = 0;
 
+	unsigned long thirdOfBurst = maxBurst/3; // 1/3 of longest runtime
 	int i, cpuI;
 	for (i = 0; i < 50; i++) {
-
+		if (processes[i].burst <= thirdOfBurst) {
+			cpuI = (cpus[0].procCount < cpus[1].procCount) ? 0 : 1;
+			cpus[cpuI].queue[cpus[cpuI].procCount] = processes[i];
+			cpus[cpuI].procCount++;
+			reorderQueue(cpus[cpuI].queue, cpus[cpuI].procCount);
+		} else if (processes[i].burst <= thirdOfBurst*2) {
+			cpuI = (cpus[2].procCount < cpus[3].procCount) ? 2 : 3;
+			cpus[cpuI].queue[cpus[cpuI].procCount] = processes[i];
+			cpus[cpuI].procCount++;
+			reorderQueue(cpus[cpuI].queue, cpus[cpuI].procCount);
+		} else if (processes[i].burst <= thirdOfBurst*3) {
+			cpus[4].queue[cpus[4].procCount] = processes[i];
+			cpus[4].procCount++;
+			reorderQueue(cpus[4].queue, cpus[4].procCount);
+		}
 	}
+
+	unsigned long long turnarounds[5];
+	for (i = 0; i < 5; i++) {
+		turnarounds[i] = turnaroundTimeForCpu(i);
+	}
+
+	// convert cycles to real time
+	int max = 0;
+	for (i = 0; i < 5; ++i) {
+		turnarounds[i] = turnarounds[i] / cpus[i].speed;
+		if (turnarounds[i] > turnarounds[max])
+			max = i;
+	}
+
+	printf("Total time for problem 3 = %llus\n", turnarounds[max]);
 }
 
 void prob4() {
@@ -228,6 +280,7 @@ int main(int argc, char const *argv[]) {
 	generateProcesses();
 	prob1();
 	prob2();
+	prob3();
 
 	return 0;
 }
