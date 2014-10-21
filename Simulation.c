@@ -61,8 +61,12 @@ void clearCpus() {
 
 void printProcs() {
 	int i, j;
-	for (i = 0; i < 10; i++) {
+	for (i = -1; i < 10; i++) {
 		for (j = 0; j < 5; j++) {
+			if (i < 0) {
+				printf("%22s %d\t", "CPU", j);
+				continue;
+			}
 			printf("m: %7d b: %10lu\t", cpus[j].queue[i].memory, cpus[j].queue[i].burst);
 		}
 		printf("\n");
@@ -251,7 +255,7 @@ void prob3() {
 	cpus[4].procCount = 0;
 
 	unsigned long thirdOfBurst = maxBurst/3; // 1/3 of longest runtime
-	int i, cpuI;
+	int i, j, cpuI;
 	for (i = 0; i < 50; i++) {
 		if (processes[i].burst <= thirdOfBurst) {
 			cpuI = (cpus[0].procCount < cpus[1].procCount) ? 0 : 1;
@@ -271,7 +275,38 @@ void prob3() {
 	}
 
 	// balancing
-	
+	// Find largest queue
+	int maxQueue = 0, minQueue = 0;
+	for (i = 0; i < 5; i++) {
+		if (cpus[i].procCount > cpus[maxQueue].procCount)
+			maxQueue = i;
+
+		if (cpus[i].procCount < cpus[minQueue].procCount)
+			minQueue = i;
+	}
+
+	// get # to re-schedule
+	int n = cpus[maxQueue].procCount - cpus[minQueue].procCount;
+
+	// reschedule
+	for (i = 0; i < n; i++) {
+		// get process
+		process p;
+		p.burst = cpus[maxQueue].queue[cpus[maxQueue].procCount-1].burst;
+		p.memory = cpus[maxQueue].queue[cpus[maxQueue].procCount-1].memory;
+		//cpus[maxQueue].queue[cpus[maxQueue].procCount-1] = {0};
+		cpus[maxQueue].procCount--;
+
+		// place on shortest queue
+		cpus[minQueue].queue[cpus[minQueue].procCount] = p;
+		cpus[minQueue].procCount++;
+		reorderQueue(cpus[minQueue].queue, cpus[minQueue].procCount);
+
+		// Find new shortest queue
+		for (j = 0; j < 5; j++)
+			if (cpus[j].procCount < cpus[minQueue].procCount)
+				minQueue = j;
+	}
 
 	unsigned long long turnarounds[5];
 	for (i = 0; i < 5; i++) {
