@@ -69,6 +69,30 @@ void printProcs() {
 	}
 }
 
+void printProcsMulti() {
+	int i, j, maxCount = 0;
+	for (i = 0; i < 5; i++) {
+		if (cpus[i].procCount > maxCount)
+			maxCount = cpus[i].procCount;
+	}
+
+	for (i = -1; i < maxCount; i++) {
+		for (j = 0; j < 5; j++) {
+			if (i < 0) {
+				printf("%22s %d\t", "CPU", j);
+				continue;
+			}
+
+			if (i < cpus[j].procCount) {
+				printf("m: %7d b: %10lu\t", cpus[j].queue[i].memory, cpus[j].queue[i].burst);
+			} else {
+				printf("%25s", " \t");
+			}
+		}
+		printf("\n");
+	}
+}
+
 void reorderQueue(process *queue, int length) {
 	int i,j,iMin;
 
@@ -161,7 +185,6 @@ void prob1() { // All CPU's identical
 	// Get turnaround time in cycles
 	unsigned long long turnaround = getTurnaroundTimeProb1();
 	printProcs();
-	printf("Turnaround time in cycles: %llu\n", turnaround);
 	printf("Total time for problem 1 = %llus\n", turnaround / cpus[0].speed);
 
 }
@@ -204,7 +227,7 @@ void prob2() {
 	}
 
 	unsigned long long turnaround = getTurnaroundTime();
-
+	printProcsMulti();
 	printf("Total time for problem 2 = %llus\n", turnaround / cpus[0].speed);
 
 }
@@ -247,6 +270,9 @@ void prob3() {
 		}
 	}
 
+	// balancing
+	
+
 	unsigned long long turnarounds[5];
 	for (i = 0; i < 5; i++) {
 		turnarounds[i] = turnaroundTimeForCpu(i);
@@ -260,6 +286,7 @@ void prob3() {
 			max = i;
 	}
 
+	printProcsMulti();
 	printf("Total time for problem 3 = %llus\n", turnarounds[max]);
 }
 
