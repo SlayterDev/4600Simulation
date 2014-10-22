@@ -267,10 +267,13 @@ void prob3() {
 			cpus[cpuI].queue[cpus[cpuI].procCount] = processes[i];
 			cpus[cpuI].procCount++;
 			reorderQueue(cpus[cpuI].queue, cpus[cpuI].procCount);
-		} else if (processes[i].burst <= thirdOfBurst*3) {
+		} else if (processes[i].burst > thirdOfBurst*2) {
 			cpus[4].queue[cpus[4].procCount] = processes[i];
 			cpus[4].procCount++;
 			reorderQueue(cpus[4].queue, cpus[4].procCount);
+		} else {
+			printf("*******Someone is lost********\n");
+			printf("maxBurst: %lu p[i].b: %lu\n", maxBurst, processes[i].burst);
 		}
 	}
 
@@ -326,6 +329,23 @@ void prob3() {
 }
 
 void prob4() {
+	clearCpus();
+	cpus[0].speed = 3 * (long)(pow(10,6));
+	cpus[0].memory = 2097152; // 2GB
+	cpus[0].procCount = 0;
+	cpus[1].speed = 3 * (long)(pow(10,6));
+	cpus[1].memory = 2097152; // 2GB
+	cpus[1].procCount = 0;
+	cpus[2].speed = 3 * (long)(pow(10,6));
+	cpus[2].memory = 4194304; // 4GB
+	cpus[2].procCount = 0;
+	cpus[3].speed = 3 * (long)(pow(10,6));
+	cpus[3].memory = 4194304; // 4GB
+	cpus[3].procCount = 0;
+	cpus[4].speed = 3 * (long)(pow(10,6));
+	cpus[4].memory = 8388608; // 8GB
+	cpus[4].procCount = 0;
+	
 	int i = 0;
 	while (i < 50) {
 		process p = getNewProcess();
