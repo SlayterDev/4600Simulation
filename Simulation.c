@@ -162,33 +162,60 @@ unsigned long long turnaroundTimeForCpu(int cpu) {
 	return sum;
 }
 
+// Gets the CPU with the shortest turnaround time by cycles
+// Only useful if all CPU's are the same speed
+int getShortestQueueByTime() {
+	unsigned long long sum = 0;
+	int i, min = 0;
+	for (i = 0; i < 5; i++) {
+		if (turnaroundTimeForCpu(i) < turnaroundTimeForCpu(min))
+			min = i;
+	}
+
+	return min;
+}
+
 void prob1() { // All CPU's identical
 	clearCpus();
 	cpus[0].speed = 3 * (long)(pow(10,6));
 	cpus[0].memory = 8388608; // 8GB
+	cpus[0].procCount = 0;
 	cpus[1].speed = 3 * (long)(pow(10,6));
 	cpus[1].memory = 8388608; // 8GB
+	cpus[1].procCount = 0;
 	cpus[2].speed = 3 * (long)(pow(10,6));
 	cpus[2].memory = 8388608; // 8GB
+	cpus[2].procCount = 0;
 	cpus[3].speed = 3 * (long)(pow(10,6));
 	cpus[3].memory = 8388608; // 8GB
+	cpus[3].procCount = 0;
 	cpus[4].speed = 3 * (long)(pow(10,6));
 	cpus[4].memory = 8388608; // 8GB
+	cpus[4].procCount = 0;
 
 	// SJF
 	int i, queuePos = 0;
 	for (i = 0; i < 50; i++) {
-		cpus[i % 5].queue[queuePos] = processes[i];
+		/*cpus[i % 5].queue[queuePos] = processes[i];
 		reorderQueue(cpus[i % 5].queue, queuePos+1);
 
 		if ((i+1) % 5 == 0 && i > 0) {
 			queuePos++;
-		}
+		}*/
+
+		// Get the shortest queue
+		int min = getShortestQueueByTime();
+
+		// add process to queue
+		cpus[min].queue[cpus[min].procCount] = processes[i];
+		cpus[min].procCount++;
+		reorderQueue(cpus[min].queue, cpus[min].procCount);
+
 	}
 
 	// Get turnaround time in cycles
-	unsigned long long turnaround = getTurnaroundTimeProb1();
-	printProcs();
+	unsigned long long turnaround = getTurnaroundTime();
+	printProcsMulti();
 	printf("Total time for problem 1 = %llus\n", turnaround / cpus[0].speed);
 
 }
@@ -214,12 +241,14 @@ void prob2() {
 	int i, cpuI;
 	for (i = 0; i < 50; i++) {
 		if (processes[i].memory <= 2097152) {
-			cpuI = (cpus[0].procCount < cpus[1].procCount) ? 0 : 1;
+			//cpuI = (cpus[0].procCount < cpus[1].procCount) ? 0 : 1;
+			cpuI = (turnaroundTimeForCpu(0) < turnaroundTimeForCpu(1)) ? 0 : 1;
 			cpus[cpuI].queue[cpus[cpuI].procCount] = processes[i];
 			cpus[cpuI].procCount++;
 			reorderQueue(cpus[cpuI].queue, cpus[cpuI].procCount);
 		} else if (processes[i].memory <= 4194304) {
-			cpuI = (cpus[2].procCount < cpus[3].procCount) ? 2 : 3;
+			//cpuI = (cpus[2].procCount < cpus[3].procCount) ? 2 : 3;
+			cpuI = (turnaroundTimeForCpu(2) < turnaroundTimeForCpu(3)) ? 2 : 3;
 			cpus[cpuI].queue[cpus[cpuI].procCount] = processes[i];
 			cpus[cpuI].procCount++;
 			reorderQueue(cpus[cpuI].queue, cpus[cpuI].procCount);
@@ -258,12 +287,14 @@ void prob3() {
 	int i, j, cpuI;
 	for (i = 0; i < 50; i++) {
 		if (processes[i].burst <= thirdOfBurst) {
-			cpuI = (cpus[0].procCount < cpus[1].procCount) ? 0 : 1;
+			//cpuI = (cpus[0].procCount < cpus[1].procCount) ? 0 : 1;
+			cpuI = (turnaroundTimeForCpu(0) < turnaroundTimeForCpu(1)) ? 0 : 1;
 			cpus[cpuI].queue[cpus[cpuI].procCount] = processes[i];
 			cpus[cpuI].procCount++;
 			reorderQueue(cpus[cpuI].queue, cpus[cpuI].procCount);
 		} else if (processes[i].burst <= thirdOfBurst*2) {
-			cpuI = (cpus[2].procCount < cpus[3].procCount) ? 2 : 3;
+			//cpuI = (cpus[2].procCount < cpus[3].procCount) ? 2 : 3;
+			cpuI = (turnaroundTimeForCpu(2) < turnaroundTimeForCpu(3)) ? 2 : 3;
 			cpus[cpuI].queue[cpus[cpuI].procCount] = processes[i];
 			cpus[cpuI].procCount++;
 			reorderQueue(cpus[cpuI].queue, cpus[cpuI].procCount);
@@ -273,7 +304,7 @@ void prob3() {
 			reorderQueue(cpus[4].queue, cpus[4].procCount);
 		} else {
 			printf("*******Someone is lost********\n");
-			printf("maxBurst: %lu p[i].b: %lu\n", maxBurst, processes[i].burst);
+			printf("maxBurst: %lu p[%d].b: %lu\n", maxBurst, i, processes[i].burst);
 		}
 	}
 
@@ -331,16 +362,16 @@ void prob3() {
 void prob4() {
 	clearCpus();
 	cpus[0].speed = 3 * (long)(pow(10,6));
-	cpus[0].memory = 2097152; // 2GB
+	cpus[0].memory = 8388608; // 8GB
 	cpus[0].procCount = 0;
 	cpus[1].speed = 3 * (long)(pow(10,6));
-	cpus[1].memory = 2097152; // 2GB
+	cpus[1].memory = 8388608; // 8GB
 	cpus[1].procCount = 0;
 	cpus[2].speed = 3 * (long)(pow(10,6));
-	cpus[2].memory = 4194304; // 4GB
+	cpus[2].memory = 8388608; // 8GB
 	cpus[2].procCount = 0;
 	cpus[3].speed = 3 * (long)(pow(10,6));
-	cpus[3].memory = 4194304; // 4GB
+	cpus[3].memory = 8388608; // 8GB
 	cpus[3].procCount = 0;
 	cpus[4].speed = 3 * (long)(pow(10,6));
 	cpus[4].memory = 8388608; // 8GB
@@ -350,10 +381,20 @@ void prob4() {
 	while (i < 50) {
 		process p = getNewProcess();
 
-		// TODO: Schedule the new process
+		// Get the shortest queue
+		int min = getShortestQueueByTime();
+
+		// add process to queue
+		cpus[min].queue[cpus[min].procCount] = p;
+		cpus[min].procCount++;
+		reorderQueue(cpus[min].queue, cpus[min].procCount);
 
 		i++;
 	}
+
+	unsigned long long turnaround = getTurnaroundTime();
+	printProcsMulti();
+	printf("Total time for problem 4 = %llus\n", turnaround / cpus[0].speed);
 }
 
 int main(int argc, char const *argv[]) {
@@ -363,6 +404,7 @@ int main(int argc, char const *argv[]) {
 	prob1();
 	prob2();
 	prob3();
+	prob4();
 
 	return 0;
 }
