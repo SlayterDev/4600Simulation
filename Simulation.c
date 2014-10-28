@@ -106,9 +106,6 @@ void reorderQueue(process *queue, int length) {
 			if (queue[j].burst < queue[iMin].burst) {
 				iMin = j;
 			}
-
-			if (length == 2)
-				break;
 		}
 
 		if (iMin != i) {
@@ -116,9 +113,6 @@ void reorderQueue(process *queue, int length) {
 			queue[i] = queue[iMin];
 			queue[iMin] = temp;
 		}
-
-		if (length == 2)
-			break;
 	}
 }
 
@@ -196,13 +190,6 @@ void prob1() { // All CPU's identical
 	// SJF
 	int i, queuePos = 0;
 	for (i = 0; i < 50; i++) {
-		/*cpus[i % 5].queue[queuePos] = processes[i];
-		reorderQueue(cpus[i % 5].queue, queuePos+1);
-
-		if ((i+1) % 5 == 0 && i > 0) {
-			queuePos++;
-		}*/
-
 		// Get the shortest queue
 		int min = getShortestQueueByTime();
 
@@ -241,13 +228,11 @@ void prob2() {
 	int i, cpuI;
 	for (i = 0; i < 50; i++) {
 		if (processes[i].memory <= 2097152) {
-			//cpuI = (cpus[0].procCount < cpus[1].procCount) ? 0 : 1;
 			cpuI = (turnaroundTimeForCpu(0) < turnaroundTimeForCpu(1)) ? 0 : 1;
 			cpus[cpuI].queue[cpus[cpuI].procCount] = processes[i];
 			cpus[cpuI].procCount++;
 			reorderQueue(cpus[cpuI].queue, cpus[cpuI].procCount);
 		} else if (processes[i].memory <= 4194304) {
-			//cpuI = (cpus[2].procCount < cpus[3].procCount) ? 2 : 3;
 			cpuI = (turnaroundTimeForCpu(2) < turnaroundTimeForCpu(3)) ? 2 : 3;
 			cpus[cpuI].queue[cpus[cpuI].procCount] = processes[i];
 			cpus[cpuI].procCount++;
@@ -287,13 +272,11 @@ void prob3() {
 	int i, j, cpuI;
 	for (i = 0; i < 50; i++) {
 		if (processes[i].burst <= thirdOfBurst) {
-			//cpuI = (cpus[0].procCount < cpus[1].procCount) ? 0 : 1;
 			cpuI = (turnaroundTimeForCpu(0) < turnaroundTimeForCpu(1)) ? 0 : 1;
 			cpus[cpuI].queue[cpus[cpuI].procCount] = processes[i];
 			cpus[cpuI].procCount++;
 			reorderQueue(cpus[cpuI].queue, cpus[cpuI].procCount);
 		} else if (processes[i].burst <= thirdOfBurst*2) {
-			//cpuI = (cpus[2].procCount < cpus[3].procCount) ? 2 : 3;
 			cpuI = (turnaroundTimeForCpu(2) < turnaroundTimeForCpu(3)) ? 2 : 3;
 			cpus[cpuI].queue[cpus[cpuI].procCount] = processes[i];
 			cpus[cpuI].procCount++;
@@ -328,7 +311,6 @@ void prob3() {
 		process p;
 		p.burst = cpus[maxQueue].queue[cpus[maxQueue].procCount-1].burst;
 		p.memory = cpus[maxQueue].queue[cpus[maxQueue].procCount-1].memory;
-		//cpus[maxQueue].queue[cpus[maxQueue].procCount-1] = {0};
 		cpus[maxQueue].procCount--;
 
 		// place on shortest queue
